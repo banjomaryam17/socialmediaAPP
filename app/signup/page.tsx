@@ -25,41 +25,45 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-  
+
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       })
-  
+
       const text = await res.text()
       const data = text ? JSON.parse(text) : {}
-  
+
       console.log('🔍 Response status:', res.status)
       console.log('🧾 Response body:', data)
-  
+
       if (!res.ok) throw new Error(data.error || 'Signup failed')
-  
+
       alert('Signup successful!')
-    } catch (err: any) {
-      console.error('❌ Signup error:', err)
-      alert(err.message || 'Something went wrong')
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error('❌ Signup error:', err.message)
+        alert(err.message)
+      } else {
+        console.error('❌ Unknown signup error:', err)
+        alert('Something went wrong')
+      }
     }
   }
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-4">
         <h2 className="text-2xl font-bold text-center text-blue-600">Create an Account</h2>
-        {['username', 'password', 'firstName', 'lastName', 'avatarUrl'].map((field) => (
+        {(['username', 'password', 'firstName', 'lastName', 'avatarUrl'] as (keyof SignupForm)[]).map((field) => (
           <input
             key={field}
             type={field === 'password' ? 'password' : 'text'}
             name={field}
             placeholder={field}
-            value={(form as any)[field]}
+            value={form[field]}
             onChange={handleChange}
             className="border border-gray-300 p-2 w-full rounded placeholder-gray-700 text-gray-900"
           />

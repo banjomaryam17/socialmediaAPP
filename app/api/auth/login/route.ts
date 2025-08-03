@@ -21,10 +21,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid password' }, { status: 401 })
     }
 
-    // Optional: set a session/cookie here later
-    return NextResponse.json({ message: 'Login successful', user }, { status: 200 })
-  } catch (err: any) {
-    console.error('❌ Login error:', err.message)
+    // ✅ Login successful
+    return NextResponse.json(
+      { message: 'Login successful', user: { id: user.id, username: user.username } },
+      { status: 200 }
+    )
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error('❌ Login error:', err.message)
+    } else {
+      console.error('❌ Login error:', err)
+    }
+
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   } finally {
     client.release()

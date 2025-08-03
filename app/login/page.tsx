@@ -30,8 +30,12 @@ export default function LoginPage() {
       if (!res.ok) throw new Error(data.error || 'Login failed')
 
       alert('Login successful!')
-    } catch (err: any) {
-      alert(err.message || 'Something went wrong')
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(err.message)
+      } else {
+        alert('Something went wrong')
+      }
     }
   }
 
