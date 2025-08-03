@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
+// ✅ Safe: bcrypt dynamically imported inside server function
 export async function POST(req: NextRequest) {
-  console.log('📥 Incoming signup request')  // ✅ Add this line here
-
+  const body = await req.json()
+  const { username, password, firstName, lastName, avatarUrl } = body
   const client = await pool.connect()
 
   try {
-    const body = await req.json()
-    const { username, password, firstName, lastName, avatarUrl } = body
-
-    const bcrypt = await import('bcrypt') // ✅ Safe with Webpack
-
+    const bcrypt = await import('bcrypt') // ✅ avoids webpack bundling
     const userCheck = await client.query('SELECT * FROM users WHERE username = $1', [username])
     if (userCheck.rows.length > 0) {
       return NextResponse.json({ error: 'User already exists' }, { status: 400 })
@@ -25,10 +22,9 @@ export async function POST(req: NextRequest) {
     )
 
     return NextResponse.json({ message: 'User created', user: result.rows[0] }, { status: 201 })
-
-  } catch (error: any) {
-    console.error('❌ Signup error:', error.message)
-    return NextResponse.json({ error: error.message || 'Something went wrong' }, { status: 500 })
+  } catch (error) {
+    console.error('Signup error:', error)
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   } finally {
     client.release()
   }
