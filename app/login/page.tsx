@@ -29,7 +29,12 @@ export default function LoginPage() {
 
       if (!res.ok) throw new Error(data.error || 'Login failed')
 
-      alert('Login successful!')
+        // ✅ Store user in localStorage
+        localStorage.setItem('connectify_user', JSON.stringify(data.user))
+        
+        alert('Login successful!')
+        window.location.href = '/'  // redirect to homepage
+        
     } catch (err: unknown) {
       if (err instanceof Error) {
         alert(err.message)

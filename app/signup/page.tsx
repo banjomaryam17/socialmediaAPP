@@ -41,7 +41,12 @@ export default function SignupPage() {
 
       if (!res.ok) throw new Error(data.error || 'Signup failed')
 
-      alert('Signup successful!')
+        // ✅ Store user in localStorage
+        localStorage.setItem('connectify_user', JSON.stringify(data.user))
+        
+        alert('Signup successful!')
+        window.location.href = '/'  // redirect to homepage
+        
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error('❌ Signup error:', err.message)
