@@ -6,9 +6,14 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await client.query(`
-      SELECT posts.id, posts.text, posts.created_at, users.username, users.avatar_url
+      SELECT 
+        posts.id, posts.text, posts.created_at, 
+        users.username, users.avatar_url,
+        COUNT(post_likes.post_id) AS like_count
       FROM posts
       JOIN users ON posts.user_id = users.id
+      LEFT JOIN post_likes ON posts.id = post_likes.post_id
+      GROUP BY posts.id, users.username, users.avatar_url
       ORDER BY posts.created_at DESC
     `)
 

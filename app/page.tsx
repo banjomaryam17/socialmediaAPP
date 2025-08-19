@@ -14,6 +14,7 @@ interface Post {
   created_at: string
   username: string
   avatar_url?: string
+  like_count: number
 }
 
 export default function HomePage() {
@@ -32,15 +33,9 @@ export default function HomePage() {
       const res = await fetch('/api/posts')
       const data = await res.json()
       if (res.ok) setPosts(data.posts)
-      else console.error('Failed to load posts:', data.error)
     } catch (err) {
-      console.error('❌ Fetch error:', err)
+      console.error('Failed to fetch posts:', err)
     }
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem('connectify_user')
-    window.location.href = '/login'
   }
 
   const handlePost = async () => {
@@ -54,9 +49,9 @@ export default function HomePage() {
       })
 
       const data = await res.json()
+
       if (!res.ok) throw new Error(data.error || 'Failed to post')
 
-      alert('Post successful!')
       setPostText('')
       fetchPosts()
     } catch (err) {
@@ -65,22 +60,49 @@ export default function HomePage() {
     }
   }
 
+  const handleLike = async (postId: number) => {
+    if (!user) return
+
+    try {
+      const res = await fetch(`/api/posts/${postId}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.error || 'Like failed')
+
+      fetchPosts()
+    } catch (err) {
+      console.error('❌ Like error:', err)
+    }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('connectify_user')
+    window.location.href = '/login'
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-gray-800">
       {/* Header */}
       <header className="bg-white shadow-md p-4 flex justify-between items-center">
         <h1 className="text-xl font-bold text-blue-600">Connectify</h1>
         {user && (
-          <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
+          <button
+            onClick={handleLogout}
+            className="text-sm text-red-600 hover:underline"
+          >
             Logout
           </button>
         )}
       </header>
 
-      {/* Main Content */}
+      {/* Main card */}
       <main className="flex justify-center mt-10">
         <div className="w-full max-w-xl bg-white p-6 rounded-2xl shadow-lg space-y-4">
-          {/* Welcome */}
           {user && (
             <div className="flex items-center space-x-4">
               <img
@@ -94,13 +116,13 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Post box */}
+          {/* Post input */}
           <textarea
             placeholder="What's on your mind?"
-            value={postText}
-            onChange={(e) => setPostText(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
             rows={3}
+            value={postText}
+            onChange={(e) => setPostText(e.target.value)}
           />
           <button
             onClick={handlePost}
@@ -109,27 +131,35 @@ export default function HomePage() {
             Post
           </button>
 
-          {/* Posts list */}
-          <div className="pt-6 border-t space-y-4">
-            {posts.length === 0 ? (
-              <p className="text-sm text-center text-gray-500">No posts yet.</p>
-            ) : (
-              posts.map((post) => (
-                <div key={post.id} className="p-4 border rounded-lg shadow-sm bg-gray-50">
-                  <div className="flex items-center mb-2 space-x-3">
-                    <img
-                      src={post.avatar_url || 'https://via.placeholder.com/32'}
-                      alt="avatar"
-                      className="w-8 h-8 rounded-full"
-                    />
-                    <p className="text-sm font-semibold text-gray-700">{post.username}</p>
-                    <span className="text-xs text-gray-400">{new Date(post.created_at).toLocaleString()}</span>
-                  </div>
-                  <p className="text-gray-800">{post.text}</p>
+          {/* Posts */}
+          {posts.length === 0 ? (
+            <p className="text-center text-sm text-gray-500">No posts yet.</p>
+          ) : (
+            posts.map((post) => (
+              <div key={post.id} className="border-t pt-4">
+                <div className="flex items-center space-x-3 mb-2">
+                  <img
+                    src={post.avatar_url || 'https://via.placeholder.com/32'}
+                    alt="avatar"
+                    className="w-8 h-8 rounded-full"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    {post.username}
+                  </span>
+                  <span className="text-xs text-gray-500 ml-auto">
+                    {new Date(post.created_at).toLocaleString()}
+                  </span>
                 </div>
-              ))
-            )}
-          </div>
+                <p className="text-gray-800">{post.text}</p>
+                <button
+                  onClick={() => handleLike(post.id)}
+                  className="text-sm text-blue-500 mt-2 hover:underline"
+                >
+                  ❤️ Like ({post.like_count})
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </main>
     </div>
