@@ -14,14 +14,14 @@ export async function POST(req: NextRequest, { params }: { params: { postId: str
     }
 
     // Check if user already liked this post
-    const existing: QueryResult = await client.query(
-      'SELECT * FROM post_likes WHERE user_id = $1 AND post_id = $2',
-      [user_id, postId]
-    )
+    
 
-    if ((existing as any).rowCount > 0) {
-      return NextResponse.json({ message: 'Already liked' }, { status: 200 })
-    }
+    type PostLike = { user_id: number; post_id: number }
+
+const existing: QueryResult<PostLike> = await client.query(
+  'SELECT * FROM post_likes WHERE user_id = $1 AND post_id = $2',
+  [user_id, postId]
+)
 
     // Add new like
     await client.query('INSERT INTO post_likes (user_id, post_id) VALUES ($1, $2)', [user_id, postId])
