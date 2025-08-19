@@ -10,6 +10,7 @@ interface User {
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null)
+  const [postText, setPostText] = useState('')
 
   useEffect(() => {
     const storedUser = localStorage.getItem('connectify_user')
@@ -19,6 +20,28 @@ export default function HomePage() {
   const handleLogout = () => {
     localStorage.removeItem('connectify_user')
     window.location.href = '/login'
+  }
+
+  const handlePost = async () => {
+    if (!postText.trim() || !user) return
+
+    try {
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, text: postText })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.error || 'Failed to post')
+
+      alert('Post successful!')
+      setPostText('')
+    } catch (err) {
+      console.error('❌ Post error:', err)
+      alert('Post failed!')
+    }
   }
 
   return (
@@ -55,12 +78,17 @@ export default function HomePage() {
 
           {/* Post input */}
           <textarea
+            value={postText}
+            onChange={(e) => setPostText(e.target.value)}
             placeholder="What's on your mind?"
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
             rows={3}
           />
 
-          <button className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">
+          <button
+            onClick={handlePost}
+            className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
             Post
           </button>
 
