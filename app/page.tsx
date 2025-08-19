@@ -8,14 +8,35 @@ interface User {
   avatarUrl?: string
 }
 
+interface Post {
+  id: number
+  text: string
+  created_at: string
+  username: string
+  avatar_url?: string
+}
+
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null)
   const [postText, setPostText] = useState('')
+  const [posts, setPosts] = useState<Post[]>([])
 
   useEffect(() => {
     const storedUser = localStorage.getItem('connectify_user')
     if (storedUser) setUser(JSON.parse(storedUser))
+    fetchPosts()
   }, [])
+
+  const fetchPosts = async () => {
+    try {
+      const res = await fetch('/api/posts')
+      const data = await res.json()
+      if (res.ok) setPosts(data.posts)
+      else console.error('Failed to load posts:', data.error)
+    } catch (err) {
+      console.error('❌ Fetch error:', err)
+    }
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('connectify_user')
@@ -33,11 +54,11 @@ export default function HomePage() {
       })
 
       const data = await res.json()
-
       if (!res.ok) throw new Error(data.error || 'Failed to post')
 
       alert('Post successful!')
       setPostText('')
+      fetchPosts()
     } catch (err) {
       console.error('❌ Post error:', err)
       alert('Post failed!')
@@ -50,19 +71,16 @@ export default function HomePage() {
       <header className="bg-white shadow-md p-4 flex justify-between items-center">
         <h1 className="text-xl font-bold text-blue-600">Connectify</h1>
         {user && (
-          <button
-            onClick={handleLogout}
-            className="text-sm text-red-600 hover:underline"
-          >
+          <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
             Logout
           </button>
         )}
       </header>
 
-      {/* Main card */}
+      {/* Main Content */}
       <main className="flex justify-center mt-10">
         <div className="w-full max-w-xl bg-white p-6 rounded-2xl shadow-lg space-y-4">
-          {/* Welcome section */}
+          {/* Welcome */}
           {user && (
             <div className="flex items-center space-x-4">
               <img
@@ -76,15 +94,14 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Post input */}
+          {/* Post box */}
           <textarea
+            placeholder="What's on your mind?"
             value={postText}
             onChange={(e) => setPostText(e.target.value)}
-            placeholder="What's on your mind?"
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
             rows={3}
           />
-
           <button
             onClick={handlePost}
             className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
@@ -92,8 +109,26 @@ export default function HomePage() {
             Post
           </button>
 
-          <div className="text-center text-sm text-gray-500 pt-4 border-t">
-            No posts yet.
+          {/* Posts list */}
+          <div className="pt-6 border-t space-y-4">
+            {posts.length === 0 ? (
+              <p className="text-sm text-center text-gray-500">No posts yet.</p>
+            ) : (
+              posts.map((post) => (
+                <div key={post.id} className="p-4 border rounded-lg shadow-sm bg-gray-50">
+                  <div className="flex items-center mb-2 space-x-3">
+                    <img
+                      src={post.avatar_url || 'https://via.placeholder.com/32'}
+                      alt="avatar"
+                      className="w-8 h-8 rounded-full"
+                    />
+                    <p className="text-sm font-semibold text-gray-700">{post.username}</p>
+                    <span className="text-xs text-gray-400">{new Date(post.created_at).toLocaleString()}</span>
+                  </div>
+                  <p className="text-gray-800">{post.text}</p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </main>

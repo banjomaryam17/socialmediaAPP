@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
+export async function GET(req: NextRequest) {
+  const client = await pool.connect()
+
+  try {
+    const result = await client.query(`
+      SELECT posts.id, posts.text, posts.created_at, users.username, users.avatar_url
+      FROM posts
+      JOIN users ON posts.user_id = users.id
+      ORDER BY posts.created_at DESC
+    `)
+
+    return NextResponse.json({ posts: result.rows }, { status: 200 })
+  } catch (err) {
+    console.error('❌ Fetch posts error:', err)
+    return NextResponse.json({ error: 'Failed to load posts' }, { status: 500 })
+  } finally {
+    client.release()
+  }
+}
+
 export async function POST(req: NextRequest) {
   const client = await pool.connect()
 
