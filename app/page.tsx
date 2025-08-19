@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 
 interface User {
   id: number
@@ -50,6 +49,7 @@ export default function HomePage() {
       })
 
       const data = await res.json()
+
       if (!res.ok) throw new Error(data.error || 'Failed to post')
 
       setPostText('')
@@ -71,6 +71,7 @@ export default function HomePage() {
       })
 
       const data = await res.json()
+
       if (!res.ok) throw new Error(data.error || 'Like failed')
 
       fetchPosts()
@@ -104,12 +105,10 @@ export default function HomePage() {
         <div className="w-full max-w-xl bg-white p-6 rounded-2xl shadow-lg space-y-4">
           {user && (
             <div className="flex items-center space-x-4">
-              <Image
+              <img
                 src={user.avatarUrl || 'https://via.placeholder.com/40'}
                 alt="avatar"
-                width={48}
-                height={48}
-                className="rounded-full border shadow-sm"
+                className="w-12 h-12 rounded-full border shadow-sm"
               />
               <h2 className="text-lg font-semibold text-gray-700">
                 Welcome, <span className="text-blue-600">{user.username}</span> 👋
@@ -139,12 +138,10 @@ export default function HomePage() {
             posts.map((post) => (
               <div key={post.id} className="border-t pt-4">
                 <div className="flex items-center space-x-3 mb-2">
-                  <Image
+                  <img
                     src={post.avatar_url || 'https://via.placeholder.com/32'}
                     alt="avatar"
-                    width={32}
-                    height={32}
-                    className="rounded-full"
+                    className="w-8 h-8 rounded-full"
                   />
                   <span className="text-sm font-medium text-gray-700">
                     {post.username}
