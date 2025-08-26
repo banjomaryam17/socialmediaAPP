@@ -1,18 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
-export async function POST(
-  req: NextRequest,
-  context: { params: { userId: string } }
-) {
+interface Params {
+  params: { userId: string }
+}
+
+export async function POST(req: NextRequest, { params }: Params) {
   const client = await pool.connect()
 
   try {
     const { user_id } = await req.json()
-    const following_id = parseInt(context.params.userId, 10)
+    const following_id = parseInt(params.userId, 10)
 
-    if (!user_id || !following_id) {
+    if (!user_id || !following_id || Number.isNaN(following_id)) {
       return NextResponse.json({ error: 'Missing IDs' }, { status: 400 })
+    }
+
+    // Is there already a follow?
+    const existing = await client.query(
+      'SELECT 1 FROM followers WHERE follower_id = $1 AND following_id = $2',
+      [user_id, following_id]
+    )
+
+    if (!existing.rowCount) {
+      // Nothing to unfollow
+      return NextResponse.json({ message: 'Not following' }, { status: 200 })
     }
 
     await client.query(

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import { avatarUrlFor } from '@/lib/avatar'
+
 
 
 interface User {
@@ -146,11 +148,11 @@ export default function HomePage() {
             <>
               <div className="flex items-center space-x-4">
               <Image
-  src={user.avatarUrl || 'https://ui-avatars.com/api'}
+  src={user?.avatarUrl || avatarUrlFor(user?.username || 'User', 48)}
   alt="avatar"
   width={48}
   height={48}
-  className="rounded-full"
+  className="rounded-full border shadow-sm"
 />
 
                 <h2 className="text-lg font-semibold text-gray-700">
@@ -184,8 +186,8 @@ export default function HomePage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                   <Image
-  src={post.avatar_url || 'https://ui-avatars.com/api'}
-  alt="avatar"
+  src={post.avatar_url || avatarUrlFor(post.username, 32)}
+  alt={`${post.username} avatar`}
   width={32}
   height={32}
   className="rounded-full"
