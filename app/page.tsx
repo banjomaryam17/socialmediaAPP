@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { avatarUrlFor } from '@/lib/avatar'
 
-
-
 interface User {
   id: number
   username: string
@@ -20,7 +18,16 @@ interface Post {
   username: string
   avatar_url?: string
   like_count: number
+  comment_count: number
   is_following: boolean
+}
+
+interface Comment {
+  id: number
+  text: string
+  created_at: string
+  username: string
+  avatar_url?: string
 }
 
 export default function HomePage() {
@@ -28,6 +35,11 @@ export default function HomePage() {
   const [postText, setPostText] = useState('')
   const [posts, setPosts] = useState<Post[]>([])
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null)
+
+  // Comments state (per post)
+  const [openCommentsId, setOpenCommentsId] = useState<number | null>(null)
+  const [comments, setComments] = useState<Record<number, Comment[]>>({})
+  const [newCommentByPost, setNewCommentByPost] = useState<Record<number, string>>({})
 
   useEffect(() => {
     const storedUser = localStorage.getItem('connectify_user')
@@ -101,7 +113,50 @@ export default function HomePage() {
       console.error('❌ Follow/unfollow error:', err)
     }
   }
-  
+
+  // ------- Comments helpers -------
+  const toggleComments = async (postId: number) => {
+    setOpenCommentsId(prev => (prev === postId ? null : postId))
+    // lazy-load comments on first open
+    if (!comments[postId]) {
+      await fetchComments(postId)
+    }
+  }
+
+  const fetchComments = async (postId: number) => {
+    try {
+      const res = await fetch(`/api/posts/${postId}/comments`)
+      const data = await res.json()
+      if (res.ok) {
+        setComments(prev => ({ ...prev, [postId]: data.comments }))
+      }
+    } catch (err) {
+      console.error('❌ Fetch comments error:', err)
+    }
+  }
+
+  const handleAddComment = async (postId: number) => {
+    if (!user) return
+    const text = (newCommentByPost[postId] || '').trim()
+    if (!text) return
+
+    try {
+      const res = await fetch(`/api/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, text })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to add comment')
+
+      // clear input & refresh that post's comments + posts (to update count)
+      setNewCommentByPost(prev => ({ ...prev, [postId]: '' }))
+      await fetchComments(postId)
+      await fetchPosts()
+    } catch (err) {
+      console.error('❌ Comment error:', err)
+    }
+  }
 
   const toggleMenu = (postId: number) => {
     setMenuOpenId(menuOpenId === postId ? null : postId)
@@ -147,14 +202,13 @@ export default function HomePage() {
           {user && (
             <>
               <div className="flex items-center space-x-4">
-              <Image
-  src={user?.avatarUrl || avatarUrlFor(user?.username || 'User', 48)}
-  alt="avatar"
-  width={48}
-  height={48}
-  className="rounded-full border shadow-sm"
-/>
-
+                <Image
+                  src={user?.avatarUrl || avatarUrlFor(user?.username || 'User', 48)}
+                  alt="avatar"
+                  width={48}
+                  height={48}
+                  className="rounded-full border shadow-sm"
+                />
                 <h2 className="text-lg font-semibold text-gray-700">
                   Welcome, <span className="text-blue-600">{user.username}</span>
                 </h2>
@@ -181,17 +235,16 @@ export default function HomePage() {
             <p className="text-center text-sm text-gray-500">No posts yet.</p>
           ) : (
             posts.map((post) => (
-              
-              <div key={post.id} className="border rounded-lg p-4 shadow-sm relative space-y-2">
+              <div key={post.id} className="border rounded-lg p-4 shadow-sm relative space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                  <Image
-  src={post.avatar_url || avatarUrlFor(post.username, 32)}
-  alt={`${post.username} avatar`}
-  width={32}
-  height={32}
-  className="rounded-full"
-/>
+                    <Image
+                      src={post.avatar_url || avatarUrlFor(post.username, 32)}
+                      alt={`${post.username} avatar`}
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                    />
                     <span className="text-sm font-medium text-gray-700">{post.username}</span>
                     <span className="text-xs text-gray-500">
                       {new Date(post.created_at).toLocaleString()}
@@ -242,14 +295,72 @@ export default function HomePage() {
 
                 <p className="text-gray-800">{post.text}</p>
 
-                <div className="text-sm">
+                <div className="flex items-center gap-4 text-sm">
                   <button
                     onClick={() => handleLike(post.id)}
                     className="text-gray-700 hover:text-blue-600"
                   >
                     ❤️ {post.like_count}
                   </button>
+
+                  <button
+                    onClick={() => toggleComments(post.id)}
+                    className="text-gray-600 hover:text-blue-600"
+                  >
+                    💬 {post.comment_count} Comments
+                  </button>
                 </div>
+
+                {/* Comments drawer */}
+                {openCommentsId === post.id && (
+                  <div className="mt-3 bg-gray-50 rounded-lg p-3 space-y-2">
+                    {(comments[post.id] || []).map(c => (
+                      <div key={c.id} className="flex items-start space-x-2 text-sm">
+                        <Image
+                          src={c.avatar_url || avatarUrlFor(c.username, 24)}
+                          alt={`${c.username} avatar`}
+                          width={24}
+                          height={24}
+                          className="rounded-full flex-shrink-0"
+                        />
+                        <div className="flex-1">
+                          <span className="font-medium text-gray-700">{c.username}</span>
+                          <span className="text-gray-600 ml-2">{c.text}</span>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {new Date(c.created_at).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {user && (
+                      <div className="flex items-center gap-2 pt-2 border-t">
+                        <Image
+                          src={user.avatarUrl || avatarUrlFor(user.username, 24)}
+                          alt="Your avatar"
+                          width={24}
+                          height={24}
+                          className="rounded-full flex-shrink-0"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Write a comment..."
+                          value={newCommentByPost[post.id] || ''}
+                          onChange={(e) =>
+                            setNewCommentByPost(prev => ({ ...prev, [post.id]: e.target.value }))
+                          }
+                          className="flex-1 border rounded-full px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        />
+                        <button
+                          onClick={() => handleAddComment(post.id)}
+                          className="bg-blue-600 text-white rounded-full px-4 py-2 text-sm hover:bg-blue-700 transition"
+                        >
+                          Post
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))
           )}
