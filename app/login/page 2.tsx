@@ -29,10 +29,12 @@ export default function LoginPage() {
 
       if (!res.ok) throw new Error(data.error || 'Login failed')
 
-      localStorage.setItem('connectify_user', JSON.stringify(data.user))
-      alert('Login successful!')
-      window.location.href = '/'
-      
+        // ✅ Store user in localStorage
+        localStorage.setItem('connectify_user', JSON.stringify(data.user))
+        
+        alert('Login successful!')
+        window.location.href = '/'  // redirect to homepage
+        
     } catch (err: unknown) {
       if (err instanceof Error) {
         alert(err.message)
@@ -46,7 +48,6 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-4">
         <h2 className="text-2xl font-bold text-center text-blue-600">Login</h2>
-        
         <input
           type="text"
           name="username"
@@ -63,18 +64,9 @@ export default function LoginPage() {
           onChange={handleChange}
           className="border border-gray-300 p-2 w-full rounded placeholder-gray-700 text-gray-900"
         />
-        
         <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
           Login
         </button>
-
-        {/* ✅ Signup link */}
-        <p className="text-sm text-center text-gray-700">
-          Don't have an account?{' '}
-          <a href="/signup" className="text-blue-600 hover:underline">
-            Sign up here
-          </a>
-        </p>
       </form>
     </div>
   )
