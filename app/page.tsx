@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
+
 
 interface User {
   id: number
@@ -143,11 +145,14 @@ export default function HomePage() {
           {user && (
             <>
               <div className="flex items-center space-x-4">
-                <img
-                  src={user.avatarUrl}
-                  alt="avatar"
-                  className="w-12 h-12 rounded-full border shadow-sm"
-                />
+              <Image
+  src={user.avatarUrl || 'https://ui-avatars.com/api'}
+  alt="avatar"
+  width={48}
+  height={48}
+  className="rounded-full"
+/>
+
                 <h2 className="text-lg font-semibold text-gray-700">
                   Welcome, <span className="text-blue-600">{user.username}</span>
                 </h2>
@@ -178,11 +183,13 @@ export default function HomePage() {
               <div key={post.id} className="border rounded-lg p-4 shadow-sm relative space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <img
-                      src={post.avatar_url}
-                      alt="avatar"
-                      className="w-8 h-8 rounded-full"
-                    />
+                  <Image
+  src={post.avatar_url || 'https://ui-avatars.com/api'}
+  alt="avatar"
+  width={32}
+  height={32}
+  className="rounded-full"
+/>
                     <span className="text-sm font-medium text-gray-700">{post.username}</span>
                     <span className="text-xs text-gray-500">
                       {new Date(post.created_at).toLocaleString()}
