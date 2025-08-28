@@ -1,22 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
-export async function POST(req: NextRequest, { params }: { params: { postId: string } }) {
+export async function POST(
+  req: NextRequest, 
+  context: { params: Promise<{ postId: string }> }
+) {
   let client
   
   try {
     client = await pool.connect()
     
     // Extract postId from params (this matches your [postId] folder name)
-    const postId = parseInt(params.postId)
+    const { postId: postIdParam } = await context.params
+    const postId = parseInt(postIdParam)
     
-    console.log('🔍 Params postId:', params.postId)
+    console.log('🔍 Params postId:', postIdParam)
     console.log('🔍 Parsed postId:', postId)
     
     const { user_id } = await req.json()
 
     if (!user_id || !postId || isNaN(postId)) {
-      console.error('❌ Invalid data:', { user_id, postId: params.postId })
+      console.error('❌ Invalid data:', { user_id, postId: postIdParam })
       return NextResponse.json({ error: 'Missing user_id or invalid postId' }, { status: 400 })
     }
 
