@@ -30,6 +30,12 @@ interface Comment {
   username: string
   avatar_url?: string
 }
+interface SearchUser {
+  id: number
+  username: string
+  avatar_url?: string
+  is_following: boolean
+}
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null)
@@ -41,6 +47,10 @@ export default function HomePage() {
   const [openCommentsId, setOpenCommentsId] = useState<number | null>(null)
   const [comments, setComments] = useState<Record<number, Comment[]>>({})
   const [newCommentByPost, setNewCommentByPost] = useState<Record<number, string>>({})
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<SearchUser[]>([])
+
 
   useEffect(() => {
     const storedUser = localStorage.getItem('connectify_user')
@@ -209,6 +219,58 @@ export default function HomePage() {
       {/* Header */}
       <header className="bg-white shadow-md p-4 flex justify-between items-center">
         <h1 className="text-xl font-bold text-blue-600">Connectify</h1>
+        {/* 🔍 Search users */}
+{user && (
+  <div className="space-y-2 mt-4">
+    <input
+      type="text"
+      placeholder="Search users by username"
+      value={searchQuery}
+      onChange={async (e) => {
+        const value = e.target.value
+        setSearchQuery(value)
+
+        if (value.length > 1) {
+          const res = await fetch(`/api/users/search?q=${value}&viewer_id=${user.id}`)
+          const data = await res.json()
+          if (res.ok) setSearchResults(data.users)
+        } else {
+          setSearchResults([])
+        }
+      }}
+      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+    />
+
+    {searchResults.length > 0 && (
+      <div className="bg-gray-50 border p-3 rounded-lg space-y-2">
+        <h3 className="font-semibold text-gray-700">Search Results</h3>
+        {searchResults.map((u) => (
+          <div key={u.id} className="flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <img
+                src={u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.username)}
+                className="w-8 h-8 rounded-full"
+                alt="avatar"
+              />
+              <span>{u.username}</span>
+            </div>
+            <button
+              onClick={() => handleFollowToggle(u.id, u.is_following)}
+              className={`text-sm px-3 py-1 rounded-full ${
+                u.is_following
+                  ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                  : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+              }`}
+            >
+              {u.is_following ? 'Unfollow' : 'Follow'}
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
+
         {user ? (
           <button
             onClick={handleLogout}
@@ -232,6 +294,7 @@ export default function HomePage() {
             </a>
           </div>
         )}
+        
       </header>
 
       <main className="flex justify-center mt-10 px-4">
@@ -300,6 +363,7 @@ export default function HomePage() {
                       >
                         {post.is_following ? 'Following' : 'Follow'}
                       </button>
+                      
 
                       {/* Meatball menu */}
                       <div className="relative">
