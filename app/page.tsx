@@ -19,6 +19,7 @@ interface Post {
   avatar_url?: string
   like_count: number
   comment_count: number
+  is_liked: boolean  
   is_following: boolean
 }
 
@@ -166,6 +167,42 @@ export default function HomePage() {
     localStorage.removeItem('connectify_user')
     window.location.href = '/login'
   }
+  const handleBlockUser = async (targetUserId: number) => {
+    if (!user) return
+    try {
+      const res = await fetch(`/api/users/${targetUserId}/block`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id })
+      })
+      if (res.ok) {
+        alert('User blocked successfully')
+        fetchPosts() // Refresh to hide their posts
+      }
+    } catch (err) {
+      console.error('Block error:', err)
+    }
+  }
+  
+  const handleReportPost = async (postId: number) => {
+    if (!user) return
+    const reason = prompt('Why are you reporting this post?')
+    if (!reason) return
+    
+    try {
+      const res = await fetch(`/api/posts/${postId}/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, reason })
+      })
+      if (res.ok) {
+        alert('Post reported successfully')
+      }
+    } catch (err) {
+      console.error('Report error:', err)
+    }
+  }
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-gray-800">
@@ -273,21 +310,27 @@ export default function HomePage() {
                           ⋯
                         </button>
                         {menuOpenId === post.id && (
-                          <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow z-10">
-                            <button
-                              onClick={() => handleFollowToggle(post.user_id, true)}
-                              className="block w-full px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                              Unfollow
-                            </button>
-                            <button className="block w-full px-4 py-2 text-sm hover:bg-gray-100">
-                              Block
-                            </button>
-                            <button className="block w-full px-4 py-2 text-sm hover:bg-gray-100">
-                              Report
-                            </button>
-                          </div>
-                        )}
+  <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow z-10">
+    <button
+      onClick={() => {
+        handleBlockUser(post.user_id)
+        setMenuOpenId(null)
+      }}
+      className="block w-full px-4 py-2 text-sm hover:bg-gray-100"
+    >
+      Block User
+    </button>
+    <button
+      onClick={() => {
+        handleReportPost(post.id)
+        setMenuOpenId(null)
+      }}
+      className="block w-full px-4 py-2 text-sm hover:bg-gray-100"
+    >
+      Report Post
+    </button>
+  </div>
+)}
                       </div>
                     </div>
                   )}

@@ -4,10 +4,19 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'ui-avatars.com' },
+      { 
+        protocol: 'https', 
+        hostname: 'ui-avatars.com',
+        port: '',
+        pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'socialmediaapp-rho.vercel.app',
+        port: '',
+        pathname: '/**'
+      }
     ],
-    // We do NOT enable dangerouslyAllowSVG.
-    // We'll request PNGs instead (safer and supported by Next/Image).
   },
 }
 
