@@ -1,6 +1,5 @@
 'use client'
-
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Image from 'next/image'
 import { avatarUrlFor } from '@/lib/avatar'
 
@@ -42,15 +41,26 @@ export default function HomePage() {
   const [postText, setPostText] = useState('')
   const [posts, setPosts] = useState<Post[]>([])
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null)
-
+  const searchRef = useRef<HTMLDivElement>(null)
   // Comments state (per post)
   const [openCommentsId, setOpenCommentsId] = useState<number | null>(null)
   const [comments, setComments] = useState<Record<number, Comment[]>>({})
   const [newCommentByPost, setNewCommentByPost] = useState<Record<number, string>>({})
-
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<SearchUser[]>([])
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setSearchResults([]) // Close the dropdown
+      }
+    }
+  
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   useEffect(() => {
     const storedUser = localStorage.getItem('connectify_user')
@@ -217,13 +227,13 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-gray-800">
       {/* Header */}
-      <header className="bg-white shadow-md px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+ <header className="bg-white shadow-md px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
   {/* Logo */}
   <h1 className="text-2xl font-bold text-blue-600">Connectify</h1>
-
+  
   {/* Search bar */}
   {user && (
-    <div className="relative w-full md:w-1/3">
+    <div className="relative w-full md:w-1/3" ref={searchRef}>
       <input
         type="text"
         placeholder="Search users..."
@@ -231,7 +241,6 @@ export default function HomePage() {
         onChange={async (e) => {
           const value = e.target.value
           setSearchQuery(value)
-
           if (value.length > 1) {
             const res = await fetch(`/api/users/search?q=${value}&viewer_id=${user.id}`)
             const data = await res.json()
@@ -242,7 +251,7 @@ export default function HomePage() {
         }}
         className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300"
       />
-
+      
       {/* Search dropdown */}
       {searchResults.length > 0 && (
         <div className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -260,7 +269,10 @@ export default function HomePage() {
                 <span className="text-sm text-gray-700">{u.username}</span>
               </div>
               <button
-                onClick={() => handleFollowToggle(u.id, u.is_following)}
+                onClick={() => {
+                  handleFollowToggle(u.id, u.is_following)
+                  setSearchResults([]) // Close dropdown after action
+                }}
                 className={`text-sm px-3 py-1 rounded-full ${
                   u.is_following
                     ? 'bg-red-100 text-red-600 hover:bg-red-200'
@@ -275,7 +287,7 @@ export default function HomePage() {
       )}
     </div>
   )}
-
+  
   {/* Navigation buttons */}
   <div className="flex items-center space-x-3">
     {user && (
@@ -286,7 +298,6 @@ export default function HomePage() {
         Following
       </button>
     )}
-
     {user ? (
       <button
         onClick={handleLogout}
@@ -312,7 +323,6 @@ export default function HomePage() {
     )}
   </div>
 </header>
-
 
       <main className="flex justify-center mt-10 px-4">
         <div className="w-full max-w-xl bg-white p-6 rounded-2xl shadow-lg space-y-6">
