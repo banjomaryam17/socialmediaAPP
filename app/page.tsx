@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { avatarUrlFor } from '@/lib/avatar'
+import { useRouter } from 'next/navigation'
 
 interface User {
   id: number
@@ -217,85 +218,102 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-gray-800">
       {/* Header */}
-      <header className="bg-white shadow-md p-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-blue-600">Connectify</h1>
-        {/* 🔍 Search users */}
-{user && (
-  <div className="space-y-2 mt-4">
-    <input
-      type="text"
-      placeholder="Search users by username"
-      value={searchQuery}
-      onChange={async (e) => {
-        const value = e.target.value
-        setSearchQuery(value)
+      <header className="bg-white shadow-md px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+  {/* Logo */}
+  <h1 className="text-2xl font-bold text-blue-600">Connectify</h1>
 
-        if (value.length > 1) {
-          const res = await fetch(`/api/users/search?q=${value}&viewer_id=${user.id}`)
-          const data = await res.json()
-          if (res.ok) setSearchResults(data.users)
-        } else {
-          setSearchResults([])
-        }
-      }}
-      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-    />
+  {/* Search bar */}
+  {user && (
+    <div className="relative w-full md:w-1/3">
+      <input
+        type="text"
+        placeholder="Search users..."
+        value={searchQuery}
+        onChange={async (e) => {
+          const value = e.target.value
+          setSearchQuery(value)
 
-    {searchResults.length > 0 && (
-      <div className="bg-gray-50 border p-3 rounded-lg space-y-2">
-        <h3 className="font-semibold text-gray-700">Search Results</h3>
-        {searchResults.map((u) => (
-          <div key={u.id} className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <img
-                src={u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.username)}
-                className="w-8 h-8 rounded-full"
-                alt="avatar"
-              />
-              <span>{u.username}</span>
-            </div>
-            <button
-              onClick={() => handleFollowToggle(u.id, u.is_following)}
-              className={`text-sm px-3 py-1 rounded-full ${
-                u.is_following
-                  ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                  : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-              }`}
+          if (value.length > 1) {
+            const res = await fetch(`/api/users/search?q=${value}&viewer_id=${user.id}`)
+            const data = await res.json()
+            if (res.ok) setSearchResults(data.users)
+          } else {
+            setSearchResults([])
+          }
+        }}
+        className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300"
+      />
+
+      {/* Search dropdown */}
+      {searchResults.length > 0 && (
+        <div className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          {searchResults.map((u) => (
+            <div
+              key={u.id}
+              className="flex justify-between items-center px-4 py-2 hover:bg-gray-50"
             >
-              {u.is_following ? 'Unfollow' : 'Follow'}
-            </button>
-          </div>
-        ))}
-      </div>
+              <div className="flex items-center space-x-2">
+                <img
+                  src={u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.username)}
+                  className="w-8 h-8 rounded-full"
+                  alt="avatar"
+                />
+                <span className="text-sm text-gray-700">{u.username}</span>
+              </div>
+              <button
+                onClick={() => handleFollowToggle(u.id, u.is_following)}
+                className={`text-sm px-3 py-1 rounded-full ${
+                  u.is_following
+                    ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                    : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                }`}
+              >
+                {u.is_following ? 'Unfollow' : 'Follow'}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )}
+
+  {/* Navigation buttons */}
+  <div className="flex items-center space-x-3">
+    {user && (
+      <button
+        onClick={() => window.location.href = '/following'}
+        className="bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm hover:bg-blue-200 transition"
+      >
+        Following
+      </button>
+    )}
+
+    {user ? (
+      <button
+        onClick={handleLogout}
+        className="bg-red-500 text-white px-4 py-2 rounded-full text-sm hover:bg-red-600 transition"
+      >
+        Logout
+      </button>
+    ) : (
+      <>
+        <a
+          href="/login"
+          className="bg-white border border-blue-600 text-blue-600 px-4 py-2 rounded-full text-sm hover:bg-blue-50 transition"
+        >
+          Login
+        </a>
+        <a
+          href="/signup"
+          className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm hover:bg-blue-700 transition"
+        >
+          Signup
+        </a>
+      </>
     )}
   </div>
-)}
+</header>
 
-        {user ? (
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 text-white px-4 py-1 rounded-full text-sm hover:bg-red-600"
-          >
-            Logout
-          </button>
-        ) : (
-          <div className="flex gap-3">
-            <a
-              href="/login"
-              className="bg-white border border-blue-600 text-blue-600 px-4 py-1 rounded-full text-sm hover:bg-blue-50"
-            >
-              Login
-            </a>
-            <a
-              href="/signup"
-              className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm hover:bg-blue-700"
-            >
-              Signup
-            </a>
-          </div>
-        )}
-        
-      </header>
 
       <main className="flex justify-center mt-10 px-4">
         <div className="w-full max-w-xl bg-white p-6 rounded-2xl shadow-lg space-y-6">
