@@ -17,12 +17,7 @@ export async function GET(req: NextRequest) {
         posts.user_id,
         users.username,
         users.avatar_url,
-        COALESCE(COUNT(DISTINCT pl.user_id), 0) AS like_count,
-        COALESCE(COUNT(DISTINCT pc.id), 0) AS comment_count,
-        CASE 
-          WHEN viewer_likes.post_id IS NOT NULL THEN true
-          ELSE false
-        END AS is_liked,
+        COUNT(pl.post_id) AS like_count,
         CASE 
           WHEN f.follower_id IS NOT NULL THEN true
           ELSE false
@@ -30,16 +25,14 @@ export async function GET(req: NextRequest) {
       FROM posts
       JOIN users ON posts.user_id = users.id
       LEFT JOIN post_likes pl ON posts.id = pl.post_id
-      LEFT JOIN comments pc ON posts.id = pc.post_id
-      LEFT JOIN post_likes viewer_likes ON posts.id = viewer_likes.post_id AND viewer_likes.user_id = $1
       LEFT JOIN followers f ON f.follower_id = $1 AND f.following_id = users.id
-      LEFT JOIN blocked_users bu ON bu.blocker_id = $1 AND bu.blocked_id = posts.user_id
-      WHERE bu.blocked_id IS NULL
-      GROUP BY posts.id, users.username, users.avatar_url, posts.user_id, viewer_likes.post_id, f.follower_id
+      WHERE posts.user_id = $1 OR f.follower_id IS NOT NULL
+      GROUP BY posts.id, users.username, users.avatar_url, posts.user_id, f.follower_id
       ORDER BY posts.created_at DESC
       `,
       [viewerId || null]
     )
+    
     
 
     return NextResponse.json({ posts: result.rows }, { status: 200 })
