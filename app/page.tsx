@@ -227,123 +227,144 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-gray-800">
       {/* Header */}
-      <header className="bg-white shadow-md px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-  {/* Logo */}
-  <div className="flex justify-between items-center w-full md:w-auto">
-    <h1 className="text-2xl font-bold text-blue-600">Connectify</h1>
-    
-    {/* Mobile Logout/Links */}
-    {!user ? (
-      <div className="md:hidden flex items-center gap-2">
-        <a
-          href="/login"
-          className="bg-white border border-blue-600 text-blue-600 px-4 py-1 rounded-full text-sm hover:bg-blue-50"
-        >
-          Login
-        </a>
-        <a
-          href="/signup"
-          className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm hover:bg-blue-700"
-        >
-          Signup
-        </a>
-      </div>
-    ) : (
-      <button
-        onClick={handleLogout}
-        className="md:hidden bg-red-500 text-white px-4 py-1 rounded-full text-sm hover:bg-red-600"
-      >
-        Logout
-      </button>
-    )}
-  </div>
-
-  {/* Search Bar */}
-  {user && (
-    <div className="relative w-full md:w-1/3" ref={searchRef}>
-      <input
-        type="text"
-        placeholder="Search users..."
-        value={searchQuery}
-        onChange={async (e) => {
-          const value = e.target.value
-          setSearchQuery(value)
-          if (value.length > 1) {
-            const res = await fetch(`/api/users/search?q=${value}&viewer_id=${user.id}`)
-            const data = await res.json()
-            if (res.ok) setSearchResults(data.users)
-          } else {
-            setSearchResults([])
-          }
-        }}
-        className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300"
-      />
-
-      {/* Search dropdown */}
-      {searchResults.length > 0 && (
-        <div className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {searchResults.map((u) => (
-            <div
-              key={u.id}
-              className="flex justify-between items-center px-4 py-2 hover:bg-gray-50"
-            >
-              <div className="flex items-center space-x-2">
-                <img
-                  src={u.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username)}`}
-                  className="w-8 h-8 rounded-full"
-                  alt="avatar"
-                />
-                <span className="text-sm text-gray-700">{u.username}</span>
-              </div>
-              <button
-                onClick={() => {
-                  handleFollowToggle(u.id, u.is_following)
-                  setSearchResults([])
-                }}
-                className={`text-sm px-3 py-1 rounded-full ${
-                  u.is_following
-                    ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                    : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-                }`}
+      <header className="bg-white shadow-md px-6 py-4">
+        {/* Top row: Logo and mobile logout */}
+        <div className="flex justify-between items-center w-full">
+          <h1 className="text-2xl font-bold text-blue-600">Connectify</h1>
+          
+          {/* Mobile Logout/Links - only show when not logged in or logout button */}
+          {!user ? (
+            <div className="md:hidden flex items-center gap-2">
+              <a
+                href="/login"
+                className="bg-white border border-blue-600 text-blue-600 px-4 py-1 rounded-full text-sm hover:bg-blue-50"
               >
-                {u.is_following ? 'Unfollow' : 'Follow'}
-              </button>
+                Login
+              </a>
+              <a
+                href="/signup"
+                className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm hover:bg-blue-700"
+              >
+                Signup
+              </a>
             </div>
-          ))}
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="md:hidden bg-red-500 text-white px-4 py-1 rounded-full text-sm hover:bg-red-600"
+            >
+              Logout
+            </button>
+          )}
         </div>
-      )}
-    </div>
-  )}
-
-  {/* Navigation */}
-  <div className="hidden md:flex items-center gap-3">
-    {user && (
-      <>
-        <button
-          onClick={() => window.location.href = '/following'}
-          className="bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm hover:bg-blue-200 transition"
-        >
-          Following
-        </button>
-
-        <button
-          onClick={() => window.location.href = '/users'}
-          className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm hover:bg-green-200 transition"
-        >
-          All Users
-        </button>
-
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded-full text-sm hover:bg-red-600 transition"
-        >
-          Logout
-        </button>
-      </>
-    )}
-  </div>
-</header>
-
+  
+        {/* Second row: Search Bar (mobile and desktop) */}
+        {user && (
+          <div className="mt-4 md:mt-0 md:absolute md:left-1/2 md:transform md:-translate-x-1/2 md:top-4 md:w-1/3">
+            <div className="relative" ref={searchRef}>
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchQuery}
+                onChange={async (e) => {
+                  const value = e.target.value
+                  setSearchQuery(value)
+                  if (value.length > 1) {
+                    const res = await fetch(`/api/users/search?q=${value}&viewer_id=${user.id}`)
+                    const data = await res.json()
+                    if (res.ok) setSearchResults(data.users)
+                  } else {
+                    setSearchResults([])
+                  }
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+  
+              {/* Search dropdown */}
+              {searchResults.length > 0 && (
+                <div className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {searchResults.map((u) => (
+                    <div
+                      key={u.id}
+                      className="flex justify-between items-center px-4 py-2 hover:bg-gray-50"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <img
+                          src={u.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username)}`}
+                          className="w-8 h-8 rounded-full"
+                          alt="avatar"
+                        />
+                        <span className="text-sm text-gray-700">{u.username}</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          handleFollowToggle(u.id, u.is_following)
+                          setSearchResults([])
+                        }}
+                        className={`text-sm px-3 py-1 rounded-full ${
+                          u.is_following
+                            ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                            : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                        }`}
+                      >
+                        {u.is_following ? 'Unfollow' : 'Follow'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+  
+        {/* Third row: Mobile Navigation Buttons */}
+        {user && (
+          <div className="mt-4 flex md:hidden items-center gap-3 justify-center">
+            <button
+              onClick={() => window.location.href = '/following'}
+              className="bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm hover:bg-blue-200 transition"
+            >
+              Following
+            </button>
+  
+            <button
+              onClick={() => window.location.href = '/users'}
+              className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm hover:bg-green-200 transition"
+            >
+              All Users
+            </button>
+          </div>
+        )}
+  
+        {/* Desktop Navigation - positioned absolutely */}
+        <div className="hidden md:flex items-center gap-3 absolute top-4 right-6">
+          {user && (
+            <>
+              <button
+                onClick={() => window.location.href = '/following'}
+                className="bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm hover:bg-blue-200 transition"
+              >
+                Following
+              </button>
+  
+              <button
+                onClick={() => window.location.href = '/users'}
+                className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm hover:bg-green-200 transition"
+              >
+                All Users
+              </button>
+  
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded-full text-sm hover:bg-red-600 transition"
+              >
+                Logout
+              </button>
+            </>
+          )}
+        </div>
+      </header>
+  
       <main className="flex justify-center mt-10 px-4">
         <div className="w-full max-w-xl bg-white p-6 rounded-2xl shadow-lg space-y-6">
           {user && (
