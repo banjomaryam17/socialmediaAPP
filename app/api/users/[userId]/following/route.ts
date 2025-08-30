@@ -3,10 +3,11 @@ import pool from '@/lib/db'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   const client = await pool.connect()
-  const userId = parseInt(params.userId)
+  const { userId } = await params
+  const userIdNum = parseInt(userId)
 
   try {
     const result = await client.query(
@@ -17,7 +18,7 @@ export async function GET(
       WHERE followers.follower_id = $1
       ORDER BY users.username
       `,
-      [userId]
+      [userIdNum]
     )
 
     return NextResponse.json({ following: result.rows }, { status: 200 })
