@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 
 interface User {
   id: number
@@ -66,12 +65,10 @@ export default function UsersPage() {
         {users.map((user) => (
           <div key={user.id} className="flex items-center justify-between bg-white p-4 rounded-lg shadow">
             <div className="flex items-center space-x-3">
-              <Image
+              <img
                 src={user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}`}
                 className="w-10 h-10 rounded-full"
                 alt="avatar"
-                width={40}
-                height={40}
               />
               <div>
                 <p className="font-semibold text-gray-800">{user.username}</p>
