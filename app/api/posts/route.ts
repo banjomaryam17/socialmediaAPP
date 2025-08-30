@@ -7,7 +7,6 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const viewerId = parseInt(searchParams.get('viewer_id') || '0')
-
     const result = await client.query(
       `
       SELECT 
@@ -18,23 +17,24 @@ export async function GET(req: NextRequest) {
         users.username,
         users.avatar_url,
         COUNT(pl.post_id) AS like_count,
-        CASE 
-          WHEN f.follower_id IS NOT NULL THEN true
-          ELSE false
+        COUNT(DISTINCT c.id) AS comment_count,
+        CASE
+          WHEN f.follower_id IS NOT NULL THEN TRUE
+          ELSE FALSE
         END AS is_following
       FROM posts
       JOIN users ON posts.user_id = users.id
-      LEFT JOIN post_likes pl ON posts.id = pl.post_id
       LEFT JOIN followers f ON f.follower_id = $1 AND f.following_id = users.id
-      WHERE posts.user_id = $1 OR f.follower_id IS NOT NULL
+      LEFT JOIN post_likes pl ON posts.id = pl.post_id
+      LEFT JOIN comments c ON posts.id = c.post_id
+      WHERE posts.user_id = $1 OR f.follower_id = $1
       GROUP BY posts.id, users.username, users.avatar_url, posts.user_id, f.follower_id
       ORDER BY posts.created_at DESC
       `,
-      [viewerId || null]
+      [viewerId]
     )
     
-    
-
+  
     return NextResponse.json({ posts: result.rows }, { status: 200 })
   } catch (err) {
     console.error('Fetch posts error:', err)
