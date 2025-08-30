@@ -76,7 +76,7 @@ export default function FollowingPage() {
       <h1 className="text-2xl font-bold mb-6 text-blue-700">People You Follow</h1>
 
       {following.length === 0 ? (
-        <p className="text-gray-500">You're not following anyone yet.</p>
+       <p className="text-gray-500">You&apos;re not following anyone yet.</p>
       ) : (
         <div className="space-y-4">
           {following.map((user) => (
