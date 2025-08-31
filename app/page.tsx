@@ -232,22 +232,15 @@ export default function HomePage() {
         <div className="flex justify-between items-center w-full">
           <h1 className="text-2xl font-bold text-blue-600">Connectify</h1>
           
-          {/* Mobile Logout/Links - only show when not logged in or logout button */}
           {!user ? (
-            <div className="md:hidden flex items-center gap-2">
-              <a
-                href="/login"
-                className="bg-white border border-blue-600 text-blue-600 px-4 py-1 rounded-full text-sm hover:bg-blue-50"
-              >
-                Login
-              </a>
-              <a
-                href="/signup"
-                className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm hover:bg-blue-700"
-              >
-                Signup
-              </a>
-            </div>
+  <div className="flex items-center gap-2 md:gap-4"> {/* Different gap on desktop */}
+    <a href="/login" className="bg-white border border-blue-600 text-blue-600 px-4 py-1 rounded-full text-sm hover:bg-blue-50 md:px-6 md:py-2">
+      Login
+    </a>
+    <a href="/signup" className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm hover:bg-blue-700 md:px-6 md:py-2">
+      Signup
+    </a>
+  </div>
           ) : (
             <button
               onClick={handleLogout}
