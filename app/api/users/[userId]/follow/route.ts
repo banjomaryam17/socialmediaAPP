@@ -10,7 +10,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   try {
     const { user_id } = await req.json()
-    const { userId } = await params // Await the params
+    const { userId } = await params 
     const following_id = parseInt(userId, 10)
 
     if (!user_id || !following_id || Number.isNaN(following_id)) {

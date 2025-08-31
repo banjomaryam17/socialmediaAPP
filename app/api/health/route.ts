@@ -45,7 +45,7 @@ export async function GET() {
 				database: {
 					connected: true,
 					current_time: dbInfo.current_time,
-					postgres_version: dbInfo.postgres_version.split(" ")[0], // Just version number
+					postgres_version: dbInfo.postgres_version.split(" ")[0],
 				},
 				env: envCheck,
 				timestamp: new Date().toISOString(),

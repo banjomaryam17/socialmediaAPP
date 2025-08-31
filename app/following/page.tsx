@@ -31,17 +31,16 @@ export default function FollowingPage() {
 
   const exportToExcel = async (): Promise<void> => {
     try {
-      // Create a new workbook and worksheet with explicit types
+     
       const workbook: ExcelJS.Workbook = new ExcelJS.Workbook()
       const worksheet: ExcelJS.Worksheet = workbook.addWorksheet('Following')
 
-      // Define columns with full type safety
+    
       worksheet.columns = [
         { header: 'ID', key: 'id', width: 10 },
         { header: 'Username', key: 'username', width: 30 },
         { header: 'Avatar URL', key: 'avatar_url', width: 50 }
       ]
-      // Add data rows with type-safe mapping
       following.forEach((user: User) => {
         worksheet.addRow({
           id: user.id,

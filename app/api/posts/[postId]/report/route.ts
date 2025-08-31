@@ -10,8 +10,7 @@ export async function POST(
     client = await pool.connect()
     const { postId } = await context.params
     const { user_id, reason } = await req.json()
-
-    // Simple insert - just log the report
+    
     await client.query(
       'INSERT INTO post_reports (reporter_id, post_id, reason) VALUES ($1, $2, $3)',
       [user_id, parseInt(postId), reason || 'No reason provided']

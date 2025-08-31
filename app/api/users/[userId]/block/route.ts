@@ -11,7 +11,7 @@ export async function POST(
     const { userId: blockedUserId } = await context.params
     const { user_id: blockerId } = await req.json()
 
-    // Simple insert - duplicate blocks are ignored
+  
     await client.query(
       'INSERT INTO blocked_users (blocker_id, blocked_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
       [blockerId, parseInt(blockedUserId)]

@@ -10,14 +10,14 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   try {
     const { user_id } = await req.json()
-    const { userId } = await params // Await the params
+    const { userId } = await params 
     const following_id = parseInt(userId, 10)
 
     if (!user_id || !following_id || Number.isNaN(following_id)) {
       return NextResponse.json({ error: 'Missing IDs' }, { status: 400 })
     }
 
-    // Is there already a follow?
+    // Is there already a follow(i.e if you have followed)
     const existing = await client.query(
       'SELECT 1 FROM followers WHERE follower_id = $1 AND following_id = $2',
       [user_id, following_id]

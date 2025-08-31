@@ -10,7 +10,7 @@ export async function POST(
   try {
     client = await pool.connect()
     
-    // Extract postId from params (this matches your [postId] folder name)
+    // Extract postId from params
     const { postId: postIdParam } = await context.params
     const postId = parseInt(postIdParam)
     
